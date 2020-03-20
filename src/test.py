@@ -27,7 +27,10 @@ def main(opt):
         model = ResNet56()
     else:
         raise ValueError()
-    model.load_state_dict(torch.load(opt.weight_path, map_location='cpu'))
+    try:
+        model.load_state_dict(torch.load(opt.weight_path, map_location='cpu'))
+    except:
+        model.load_state_dict(torch.load(opt.weight_path, map_location='cpu')['model'])
     model.to(device)
     model.eval()
 
@@ -60,7 +63,6 @@ def main(opt):
                     x = x.to(device, non_blocking=True)
                     y = y.to(device, dtype=torch.int64, non_blocking=True)
 
-                    # calcurate clean loss and accuracy
                     z = model(x)
                     loss = F.cross_entropy(z, y)
                     acc, _ = accuracy(z, y, topk=(1, 5))
@@ -147,5 +149,11 @@ if __name__ == '__main__':
         help='gpu id to use'
     )
 
-    opt = parser.parse_args()
-    main(opt)
+    # opt = parser.parse_args()
+    # main(opt)
+
+    from glob import glob
+    for path in glob('./uar_weights/*.pth'):
+        print('\n', path)
+        opt = parser.parse_args(['--weight_path', f'{path}'])
+        main(opt)

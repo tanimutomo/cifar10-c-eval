@@ -49,6 +49,7 @@ def create_barplot(accs :dict, title :str, savepath :str):
     plt.subplots_adjust(bottom=0.3)
     plt.grid(axis='y')
     plt.savefig(savepath)
+    plt.close()
 
 
 def get_fname(weight_path :str):

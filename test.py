@@ -1,4 +1,5 @@
 import argparse
+import numpy as np
 import os
 import pprint
 import torch
@@ -10,9 +11,9 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 from tqdm import tqdm
 
-from utils import load_txt, accuracy
+from utils import load_txt, accuracy, create_barplot, get_fname
 from models.resnet import ResNet56
-from dataset import CIFAR10C, extract_subset
+from dataset import CIFAR10C
 
 corruptions = load_txt('./corruptions.txt')
 
@@ -31,33 +32,34 @@ def main(opt):
     model.eval()
 
     accs = dict()
-    with tqdm(total=len(opt.corruptions)*len(opt.levels), ncols=80) as pbar:
-        for cname in opt.corruptions:
-            for level in opt.levels:
-                dataset = CIFAR10C(opt.data_root, cname, level,
-                                   transform=transforms.ToTensor())
-                if opt.num_samples is not None:
-                    dataset = extract_subset(dataset, opt.num_samples, False)
-                loader = DataLoader(dataset, batch_size=opt.batch_size,
-                                    shuffle=False, num_workers=4)
-                
-                with torch.no_grad():
-                    for itr, (x, y) in enumerate(loader):
-                        x = x.to(device, non_blocking=True)
-                        y = y.to(device, dtype=torch.int64, non_blocking=True)
+    with tqdm(total=len(opt.corruptions), ncols=80) as pbar:
+        for ci, cname in enumerate(opt.corruptions):
+            dataset = CIFAR10C(opt.data_root, cname,
+                                transform=transforms.ToTensor())
+            loader = DataLoader(dataset, batch_size=opt.batch_size,
+                                shuffle=False, num_workers=4)
+            
+            acc_sum = 0
+            with torch.no_grad():
+                for itr, (x, y) in enumerate(loader):
+                    x = x.to(device, non_blocking=True)
+                    y = y.to(device, dtype=torch.int64, non_blocking=True)
 
-                        # calcurate clean loss and accuracy
-                        z = model(x)
-                        loss = F.cross_entropy(z, y)
-                        acc, _ = accuracy(z, y, topk=(1, 5))
+                    # calcurate clean loss and accuracy
+                    z = model(x)
+                    loss = F.cross_entropy(z, y)
+                    acc, _ = accuracy(z, y, topk=(1, 5))
+                    acc_sum += acc.item()
 
-                        # report the training status
-                        pbar.set_postfix_str(f'{cname}-{level}: {acc.item():.2f}')
-                        pbar.update()
-                
-                accs[f'{cname}-{level}'] = acc.item()
+            acc_avg = acc_sum / (itr+1)
+            accs[f'{cname}'] = acc_avg
+
+            pbar.set_postfix_str(f'{cname}: {acc_avg:.2f}')
+            pbar.update()
     
     pprint.pprint(accs)
+    save_name = get_fname(opt.weight_path)
+    create_barplot(accs, os.path.join('figs', save_name+'.png'))
 
 
 if __name__ == '__main__':
@@ -84,11 +86,6 @@ if __name__ == '__main__':
         '--batch_size',
         type=int, default=1024,
         help='batch size',
-    )
-    parser.add_argument(
-        '--num_samples',
-        type=int, default=1000,
-        help='number of samples to test',
     )
 
     parser.add_argument(

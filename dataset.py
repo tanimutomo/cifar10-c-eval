@@ -14,7 +14,7 @@ corruptions = load_txt('./corruptions.txt')
 
 
 class CIFAR10C(datasets.VisionDataset):
-    def __init__(self, root :str, name :str, level :int,
+    def __init__(self, root :str, name :str,
                  transform=None, target_transform=None):
         assert name in corruptions
         super(CIFAR10C, self).__init__(
@@ -24,7 +24,7 @@ class CIFAR10C(datasets.VisionDataset):
         data_path = os.path.join(root, name + '.npy')
         target_path = os.path.join(root, 'labels.npy')
         
-        self.data = np.load(data_path)[(level-1)*10000:level*10000]
+        self.data = np.load(data_path)
         self.targets = np.load(target_path)
         
     def __getitem__(self, index):

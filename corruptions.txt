@@ -4,7 +4,6 @@ jpeg_compression
 elastic_transform
 motion_blur
 zoom_blur
-labels
 impulse_noise
 speckle_noise
 saturate

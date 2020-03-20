@@ -1,3 +1,7 @@
+import matplotlib as m
+m.use('Agg')
+import matplotlib.pyplot as plt
+import numpy as np
 import torch
 
 
@@ -23,6 +27,29 @@ def accuracy(output, target, topk=(1,5)):
             return acc[0]
         else:
             return acc
+
+
+def create_barplot(accs :dict, savepath :str):
+    y = list(accs.values())
+    x = np.arange(len(y))
+    xticks = list(accs.keys())
+
+    plt.bar(x, y)
+
+    plt.title(savepath)
+    plt.ylabel('Accuracy (%)')
+
+    plt.ylim(0, 100)
+
+    plt.xticks(x, xticks, rotation=90)
+    plt.yticks()
+
+    plt.subplots_adjust(bottom=0.3)
+    plt.savefig(savepath)
+
+
+def get_fname(weight_path :str):
+    return weight_path.split('/')[-1].split('.')[0]
 
 
 if __name__ == '__main__':

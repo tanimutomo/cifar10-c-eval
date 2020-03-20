@@ -71,9 +71,15 @@ def main(opt):
             pbar.set_postfix_str(f'{cname}: {acc_meter.avg:.2f}')
             pbar.update()
     
+    avg = np.mean(list(accs.values()))
+    accs['avg'] = avg
+
     pprint.pprint(accs)
     save_name = get_fname(opt.weight_path)
-    create_barplot(accs, os.path.join('figs', save_name+'.png'))
+    create_barplot(
+        accs, save_name + f' / avg={avg:.2f}',
+        os.path.join('figs', save_name+'.png')
+    )
 
 
 if __name__ == '__main__':

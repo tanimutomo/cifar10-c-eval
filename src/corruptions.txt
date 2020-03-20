@@ -1,3 +1,4 @@
+natural
 spatter
 brightness
 jpeg_compression

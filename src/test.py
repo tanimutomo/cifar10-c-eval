@@ -15,7 +15,7 @@ from utils import load_txt, accuracy, create_barplot, get_fname
 from models.resnet import ResNet56
 from dataset import CIFAR10C
 
-corruptions = load_txt('./corruptions.txt')
+corruptions = load_txt('./src/corruptions.txt')
 
 
 def main(opt):

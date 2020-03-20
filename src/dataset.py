@@ -10,7 +10,7 @@ from torchvision import datasets
 
 from utils import load_txt
 
-corruptions = load_txt('./corruptions.txt')
+corruptions = load_txt('./src/corruptions.txt')
 
 
 class CIFAR10C(datasets.VisionDataset):

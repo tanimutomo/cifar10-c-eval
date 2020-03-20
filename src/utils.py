@@ -29,14 +29,16 @@ def accuracy(output, target, topk=(1,5)):
             return acc
 
 
-def create_barplot(accs :dict, savepath :str):
+def create_barplot(accs :dict, title :str, savepath :str):
     y = list(accs.values())
     x = np.arange(len(y))
     xticks = list(accs.keys())
 
     plt.bar(x, y)
+    for i, j in zip(x, y):
+        plt.text(i, j, f'{j:.1f}', ha='center', va='bottom', fontsize=7)
 
-    plt.title(savepath)
+    plt.title(title)
     plt.ylabel('Accuracy (%)')
 
     plt.ylim(0, 100)

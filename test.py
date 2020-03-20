@@ -1,6 +1,6 @@
 import argparse
-import numpy as np
 import os
+import pprint
 import torch
 import torchvision
 import tqdm
@@ -26,16 +26,17 @@ def main(opt):
         model = ResNet56()
     else:
         raise ValueError()
-    model.load_state_dict(opt.weight_path)
+    model.load_state_dict(torch.load(opt.weight_path, map_location='cpu'))
     model.to(device)
     model.eval()
 
-    with tqdm(total=len(opt.corruptions*opt.levels), ncols=80) as pbar:
+    accs = dict()
+    with tqdm(total=len(opt.corruptions)*len(opt.levels), ncols=80) as pbar:
         for cname in opt.corruptions:
             for level in opt.levels:
                 dataset = CIFAR10C(opt.data_root, cname, level,
                                    transform=transforms.ToTensor())
-                if opt.num_subset is not None:
+                if opt.num_samples is not None:
                     dataset = extract_subset(dataset, opt.num_samples, False)
                 loader = DataLoader(dataset, batch_size=opt.batch_size,
                                     shuffle=False, num_workers=4)
@@ -43,16 +44,20 @@ def main(opt):
                 with torch.no_grad():
                     for itr, (x, y) in enumerate(loader):
                         x = x.to(device, non_blocking=True)
-                        y = y.to(device, non_blocking=True)
+                        y = y.to(device, dtype=torch.int64, non_blocking=True)
 
                         # calcurate clean loss and accuracy
                         z = model(x)
                         loss = F.cross_entropy(z, y)
-                        acc1, _ = accuracy(z, y, topk=(1, 5))
+                        acc, _ = accuracy(z, y, topk=(1, 5))
 
                         # report the training status
-                        pbar.set_postfix_str(f'{cname}-{level}:{acc:.2f}')
+                        pbar.set_postfix_str(f'{cname}-{level}: {acc.item():.2f}')
                         pbar.update()
+                
+                accs[f'{cname}-{level}'] = acc.item()
+    
+    pprint.pprint(accs)
 
 
 if __name__ == '__main__':
@@ -72,7 +77,7 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--data_root',
-        type=str, default='~/data/cifar10-c',
+        type=str, default='/home/tanimu/data/cifar10-c',
         help='root path to cifar10-c directory'
     )
     parser.add_argument(

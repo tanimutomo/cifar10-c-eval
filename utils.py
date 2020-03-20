@@ -1,3 +1,4 @@
+import torch
 
 
 def load_txt(path :str) -> list:

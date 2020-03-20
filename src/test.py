@@ -83,6 +83,25 @@ def main(opt):
 
 
 if __name__ == '__main__':
+    default_corruptions = [
+        "natural",
+        "speckle_noise",
+        "shot_noise",
+        "impulse_noise",
+        "defocus_blur",
+        "gaussian_blur",
+        "glass_blur",
+        "motion_blur",
+        "zoom_blur",
+        "snow",
+        "fog",
+        "brightness",
+        "contrast",
+        "elastic_transform",
+        "pixelate",
+        "jpeg_compression",
+    ]
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -111,7 +130,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--corruptions',
         type=str, nargs='*',
-        default=corruptions,
+        default=default_corruptions,
         help='testing corruption types',
     )
     parser.add_argument(

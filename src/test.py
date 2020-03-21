@@ -18,7 +18,7 @@ from dataset import CIFAR10C
 corruptions = load_txt('./src/corruptions.txt')
 
 
-def main(opt):
+def main(opt, weight_path :str):
 
     device = torch.device(opt.gpu_id)
 
@@ -28,9 +28,9 @@ def main(opt):
     else:
         raise ValueError()
     try:
-        model.load_state_dict(torch.load(opt.weight_path, map_location='cpu'))
+        model.load_state_dict(torch.load(weight_path, map_location='cpu'))
     except:
-        model.load_state_dict(torch.load(opt.weight_path, map_location='cpu')['model'])
+        model.load_state_dict(torch.load(weight_path, map_location='cpu')['model'])
     model.to(device)
     model.eval()
 
@@ -77,10 +77,10 @@ def main(opt):
     accs['avg'] = avg
 
     pprint.pprint(accs)
-    save_name = get_fname(opt.weight_path)
+    save_name = get_fname(weight_path)
     create_barplot(
         accs, save_name + f' / avg={avg:.2f}',
-        os.path.join('figs', save_name+'.png')
+        os.path.join(opt.fig_dir, save_name+'.png')
     )
 
 
@@ -114,9 +114,14 @@ if __name__ == '__main__':
         help='model name'
     )
     parser.add_argument(
-        '--weight_path',
-        type=str, required=True,
-        help='path to model weight',
+        '--weight_dir',
+        type=str, default='weights',
+        help='path to the dicrectory containing model weights',
+    )
+    parser.add_argument(
+        '--fig_dir',
+        type=str, default='figs',
+        help='path to the dicrectory saving output figure',
     )
     parser.add_argument(
         '--data_root',
@@ -149,11 +154,8 @@ if __name__ == '__main__':
         help='gpu id to use'
     )
 
-    # opt = parser.parse_args()
-    # main(opt)
-
+    opt = parser.parse_args()
     from glob import glob
-    for path in glob('./uar_weights/*.pth'):
+    for path in glob(f'./{opt.weight_dir}/*.pth'):
         print('\n', path)
-        opt = parser.parse_args(['--weight_path', f'{path}'])
-        main(opt)
+        main(opt, path)

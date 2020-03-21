@@ -53,7 +53,7 @@ def create_barplot(accs :dict, title :str, savepath :str):
 
 
 def get_fname(weight_path :str):
-    return weight_path.split('/')[-1].split('.')[0]
+    return '.'.join(weight_path.split('/')[-1].split('.')[:-1])
 
 
 class AverageMeter(object):

@@ -1,4 +1,5 @@
 import argparse
+import glob
 import numpy as np
 import os
 import pprint
@@ -6,6 +7,7 @@ import torch
 import torchvision
 import tqdm
 
+from glob import glob
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
@@ -115,7 +117,12 @@ if __name__ == '__main__':
     )
     parser.add_argument(
         '--weight_dir',
-        type=str, default='weights',
+        type=str,
+        help='path to the dicrectory containing model weights',
+    )
+    parser.add_argument(
+        '--weight_path',
+        type=str,
         help='path to the dicrectory containing model weights',
     )
     parser.add_argument(
@@ -155,7 +162,11 @@ if __name__ == '__main__':
     )
 
     opt = parser.parse_args()
-    from glob import glob
-    for path in glob(f'./{opt.weight_dir}/*.pth'):
-        print('\n', path)
-        main(opt, path)
+    if opt.weight_path is not None:
+        main(opt, opt.weight_path)
+    elif opt.weight_dir is not None:
+        for path in glob(f'./{opt.weight_dir}/*.pth'):
+            print('\n', path)
+            main(opt, path)
+    else:
+        raise ValueError()

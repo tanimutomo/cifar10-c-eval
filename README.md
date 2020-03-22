@@ -6,7 +6,7 @@
 ## Download data
 Download CIFAR10-C dataset from [here](https://zenodo.org/record/2535967#.XncuG5P7TUJ).  
 
-## Model Setting
+## (Optional) Set your model
 A default model is ResNet56. it's model file is already contained in `src/models/`.  
 If you use your custom model, please do the following procedure.
 - Add your model file to `src/models/`. 

@@ -1,6 +1,5 @@
 # Evaluating a model performance for CIFAR10-C (PyTorch)
 
-## CIFAR10-C Examples
 ![cifar10-c-examples](./cifar10-c-examples.png)
 
 ## Preparation

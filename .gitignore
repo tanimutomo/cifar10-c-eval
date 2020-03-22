@@ -133,3 +133,5 @@ dmypy.json
 *.pth
 *.png
 !.gitkeep
+!cifar10-c-examples.png
+!naturally_trained.png

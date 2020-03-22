@@ -49,7 +49,7 @@ def main(opt, weight_path :str):
             if cname == 'natural':
                 dataset = datasets.CIFAR10(
                     os.path.join(opt.data_root, 'cifar10'),
-                    train=False, transform=transform
+                    train=False, transform=transform, download=True,
                 )
             else:
                 dataset = CIFAR10C(
@@ -87,25 +87,6 @@ def main(opt, weight_path :str):
 
 
 if __name__ == '__main__':
-    default_corruptions = [
-        "natural",
-        "speckle_noise",
-        "shot_noise",
-        "impulse_noise",
-        "defocus_blur",
-        "gaussian_blur",
-        "glass_blur",
-        "motion_blur",
-        "zoom_blur",
-        "snow",
-        "fog",
-        "brightness",
-        "contrast",
-        "elastic_transform",
-        "pixelate",
-        "jpeg_compression",
-    ]
-
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -143,7 +124,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--corruptions',
         type=str, nargs='*',
-        default=default_corruptions,
+        default=corruptions,
         help='testing corruption types',
     )
     parser.add_argument(

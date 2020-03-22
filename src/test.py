@@ -140,7 +140,6 @@ if __name__ == '__main__':
         type=int, default=1024,
         help='batch size',
     )
-
     parser.add_argument(
         '--corruptions',
         type=str, nargs='*',
@@ -148,20 +147,13 @@ if __name__ == '__main__':
         help='testing corruption types',
     )
     parser.add_argument(
-        '--levels',
-        type=int, nargs='*',
-        choices=[1, 2, 3, 4, 5],
-        default=[1, 2, 3, 4, 5],
-        help='testing corruption levels',
-    )
-
-    parser.add_argument(
         '--gpu_id',
         type=str, default=0,
         help='gpu id to use'
     )
 
     opt = parser.parse_args()
+
     if opt.weight_path is not None:
         main(opt, opt.weight_path)
     elif opt.weight_dir is not None:

@@ -3,12 +3,13 @@ import glob
 import numpy as np
 import os
 import pprint
-from skimage import draw
+import skimage
 import torch
 import torchvision
 import tqdm
 
 from glob import glob
+from skimage.color import rgb2hsv
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms, datasets
@@ -19,56 +20,6 @@ from models.resnet import ResNet56
 from dataset import CIFAR10C
 
 corruptions = load_txt('./src/corruptions.txt')
-MEAN = [0.49139968, 0.48215841, 0.44653091]
-STD = [0.24703223, 0.24348513, 0.26158784]
-
-class Standadize(object):
-    def __init__(self):
-        pass
-    
-    def __call__(self, x :torch.FloatTensor) -> torch.FloatTensor:
-        return (x - x.min()) / (x.max() - x.min())
-
-def batch_standadize(x):
-    mn, _ = x.view(x.shape[0], -1).min(dim=1)
-    mx, _ = x.view(x.shape[0], -1).max(dim=1)
-    return (x - mn[:, None, None, None]) / (mx - mn)[:, None, None, None]
-
-def normalize(x):
-    x -= torch.tensor(MEAN, device=x.device)[None, :, None, None]
-    x /= torch.tensor(STD, device=x.device)[None, :, None, None]
-    return x
-
-def zshift(z :torch.FloatTensor) -> torch.FloatTensor:
-    assert z.ndim == 5 and z.shape[-1] == 2 and z.shape[-2] == z.shape[-3]
-    resol = z.shape[-2]
-    return torch.cat([
-        torch.cat([
-            z[..., resol//2:, resol//2:, :], # bottom right
-            z[..., resol//2:, :resol//2, :], # bottom left
-        ], dim=-2),
-        torch.cat([
-            z[..., :resol//2, resol//2:, :], # top right
-            z[..., :resol//2, :resol//2, :], # top left
-        ], dim=-2),
-    ], dim=-3)
-
-
-def _get_circle_mask(shape, br, er):
-    B, C, H, W, F = shape
-    assert H == W
-    c = H // 2
-    lm = torch.zeros(shape)
-    sm = torch.zeros(shape)
-    if er > 0:
-        rr, cc = draw.circle(c, c, er)
-        lm[..., rr, cc, :] = 1
-    else:
-        lm = torch.ones(shape)
-    if br > 0:
-        rr, cc = draw.circle(c, c, br)
-        sm[..., rr, cc, :] = 1
-    return lm - sm
 
 
 def main(opt, weight_path :str):
@@ -88,9 +39,10 @@ def main(opt, weight_path :str):
     model.eval()
 
     transform = transforms.Compose([
+        ToHSV(),
         transforms.ToTensor(),
-        # Standadize(),
-        transforms.Normalize(MEAN, STD)
+        transforms.Normalize([0.32541173, 0.27376606, 0.53925416],
+                             [0.27649865, 0.2183582, 0.24723951],)
     ])
 
     accs = dict()
@@ -100,7 +52,7 @@ def main(opt, weight_path :str):
             if cname == 'natural':
                 dataset = datasets.CIFAR10(
                     os.path.join(opt.data_root, 'cifar10'),
-                    train=False, transform=transform, download=True,
+                    train=False, transform=transform
                 )
             else:
                 dataset = CIFAR10C(
@@ -115,13 +67,6 @@ def main(opt, weight_path :str):
                 for itr, (x, y) in enumerate(loader):
                     x = x.to(device, non_blocking=True)
                     y = y.to(device, dtype=torch.int64, non_blocking=True)
-
-                    # z = torch.fft(torch.stack([x, x], dim=-1), 2)
-                    # z_ = zshift(z)
-                    # z_ = z_ * _get_circle_mask(z_.shape, 1, 10).to(device)
-                    # z = zshift(z_)
-                    # x = torch.ifft(z, 2)[..., 0]
-                    # x = normalize(batch_standadize(x))
 
                     z = model(x)
                     loss = F.cross_entropy(z, y)
@@ -144,7 +89,37 @@ def main(opt, weight_path :str):
     )
 
 
+class ToHSV(object):
+    def __init__(self):
+        pass
+    
+    def __call__(self, img) -> np.ndarray:
+        '''img is PIL.Image'''
+        x = np.array(img)
+        y = rgb2hsv(x)
+        return y.astype(np.float32)
+
+
 if __name__ == '__main__':
+    default_corruptions = [
+        "natural",
+        "speckle_noise",
+        "shot_noise",
+        "impulse_noise",
+        "defocus_blur",
+        "gaussian_blur",
+        "glass_blur",
+        "motion_blur",
+        "zoom_blur",
+        "snow",
+        "fog",
+        "brightness",
+        "contrast",
+        "elastic_transform",
+        "pixelate",
+        "jpeg_compression",
+    ]
+
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
@@ -182,7 +157,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--corruptions',
         type=str, nargs='*',
-        default=corruptions,
+        default=default_corruptions,
         help='testing corruption types',
     )
     parser.add_argument(

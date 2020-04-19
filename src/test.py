@@ -17,7 +17,10 @@ from utils import load_txt, accuracy, create_barplot, get_fname, AverageMeter
 from models.resnet import ResNet56
 from dataset import CIFAR10C
 
-corruptions = load_txt('./src/corruptions.txt')
+
+CORRUPTIONS = load_txt('./src/corruptions.txt')
+MEAN = [0.49139968, 0.48215841, 0.44653091]
+STD  = [0.24703223, 0.24348513, 0.26158784]
 
 
 def main(opt, weight_path :str):
@@ -38,8 +41,7 @@ def main(opt, weight_path :str):
 
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize([0.49139968, 0.48215841, 0.44653091],
-                             [0.24703223, 0.24348513, 0.26158784],)
+        transforms.Normalize(MEAN, STD)
     ])
 
     accs = dict()
@@ -124,7 +126,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--corruptions',
         type=str, nargs='*',
-        default=corruptions,
+        default=CORRUPTIONS,
         help='testing corruption types',
     )
     parser.add_argument(
@@ -142,4 +144,4 @@ if __name__ == '__main__':
             print('\n', path)
             main(opt, path)
     else:
-        raise ValueError()
+        raise ValueError("Please specify weight_path or weight_dir option.")

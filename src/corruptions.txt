@@ -1,10 +1,10 @@
 natural
-speckle_noise
+gaussian_noise
 shot_noise
+speckle_noise
 impulse_noise
 defocus_blur
 gaussian_blur
-glass_blur
 motion_blur
 zoom_blur
 snow
@@ -16,5 +16,4 @@ pixelate
 jpeg_compression
 spatter
 saturate
-gaussian_noise
 frost
